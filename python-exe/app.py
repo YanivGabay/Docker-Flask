@@ -24,8 +24,10 @@ def execute_code():
     except Exception as ex:
         return jsonify({'error': str(ex)}), 500  # Also jsonify here
     finally:
+        
         #clean up the temp file
         if os.path.exists(temp_file_name):
             os.remove(temp_file_name)
+    return jsonify({'output': output})
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5001)
