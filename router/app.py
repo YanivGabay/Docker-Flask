@@ -13,50 +13,49 @@ if not os.path.exists(UPLOAD_FOLDER):
 def hello_world():
     return "<p>Hello, World!</p>"
 
-# Handle POST requests to upload code files
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
-
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No selected file'})
-
     if file:
-        # Save the uploaded file to the temporary directory
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
         return jsonify({'message': f'File {file.filename} uploaded successfully'})
 
-# Handle GET requests to execute code files
 @app.route('/execute', methods=['GET'])
 def execute():
-    # List files in the temporary directory
+    results = []
     files = os.listdir(UPLOAD_FOLDER)
     if not files:
         return jsonify({'error': 'No code files available for execution'})
 
-    # For simplicity, let's execute the first file in the directory
-    filename = files[0]
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    for filename in files:
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        with open(filepath, 'r') as f:
+            code = f.read()
 
-    # Read the code file
-    with open(filepath, 'r') as f:
-        code = f.read()
-    print(f"before the try block of post to the other container")
-    
-    # Forward the code to the Python executor
-    executor_url = 'http://service2:5001/execute'
+        executor_url = determine_executor_url(filename)
+        try:
+            response = requests.post(executor_url, json={'code': code})
+            response.raise_for_status()
+            results.append({'file': filename, 'output': response.json()})
+        except requests.exceptions.RequestException as e:
+            results.append({'file': filename, 'error': str(e)})
 
-    try:
-        print(f"trying to post request to: {executor_url}")
-        response = requests.post(executor_url, json={'code': code})
-        response.raise_for_status()  # Raise HTTPError for bad responses
-        return jsonify(response.json())  # Ensure to jsonify the response correctly
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
-        return jsonify({'error': str(e)}), 500
+    return jsonify(results)
+
+def determine_executor_url(filename):
+    if filename.endswith('.py'):
+        return 'http://service2:5001/execute'
+    elif filename.endswith('.java'):
+        return 'http://service3:5002/execute'
+  ##  elif filename.endswith('.dart'):
+    #    return 'http://dart-executor:5003/execute'
+    else:
+        return None  # or a default executor if you have one
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)

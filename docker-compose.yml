@@ -17,6 +17,15 @@ services:
       - "5001:5001"
     volumes:
       - ./python-exe:/app
+    
+  service3:
+    build:
+      context: ./java-exe #Directory containing the Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./java-exe:/app
 
 
 
