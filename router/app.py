@@ -52,8 +52,8 @@ def determine_executor_url(filename):
         return 'http://service2:5001/execute'
     elif filename.endswith('.java'):
         return 'http://service3:5002/execute'
-  ##  elif filename.endswith('.dart'):
-    #    return 'http://dart-executor:5003/execute'
+    elif filename.endswith('.dart'):
+       return 'http://service4:5003/execute'
     else:
         return None  # or a default executor if you have one
 
