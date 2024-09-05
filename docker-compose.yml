@@ -1,0 +1,22 @@
+
+services:
+  service1:
+    build:
+      context: ./router  # Directory containing the Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./router:/app
+
+  service2:
+    build:
+      context: ./python-exe  # Directory containing the Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./python-exe:/app
+
+
+
